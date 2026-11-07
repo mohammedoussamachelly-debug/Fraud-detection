@@ -1,0 +1,214 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+
+/*
+ * SentinelAI design tokens. Semantic names only — components reference
+ * `bg-surface`, `text-risk-high`, etc., never a raw palette value, so the
+ * whole product restyles from this one block. See docs/design-system.md.
+ */
+@theme {
+  --font-sans: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --spacing: 0.25rem;
+
+  --radius-control: 6px;
+  --radius-surface: 8px;
+
+  /* Neutral scale (light) */
+  --color-neutral-0: #ffffff;
+  --color-neutral-50: #f8f9fb;
+  --color-neutral-100: #eef0f3;
+  --color-neutral-200: #dfe2e7;
+  --color-neutral-300: #c6cad2;
+  --color-neutral-400: #9aa0ac;
+  --color-neutral-500: #6b7280;
+  --color-neutral-600: #4b5160;
+  --color-neutral-700: #343a46;
+  --color-neutral-800: #1f2430;
+  --color-neutral-900: #12151c;
+  --color-neutral-950: #0a0c10;
+
+  --color-accent-500: #3b5fe0;
+  --color-accent-600: #2f4ec4;
+
+  --color-red-500: #d63a3a;
+  --color-red-600: #b82b2b;
+  --color-amber-500: #c7791a;
+  --color-amber-600: #8a500b;
+  --color-green-500: #2f8f5b;
+  --color-green-600: #257349;
+  --color-violet-500: #6a4fc9;
+  --color-blue-500: #3568c9;
+}
+
+:root {
+  color-scheme: light;
+
+  --color-background: var(--color-neutral-50);
+  --color-surface: var(--color-neutral-0);
+  --color-surface-raised: var(--color-neutral-0);
+  --color-border: var(--color-neutral-200);
+  --color-border-strong: #858b96;
+  --color-foreground: var(--color-neutral-900);
+  --color-foreground-muted: var(--color-neutral-600);
+  --color-foreground-subtle: #626978;
+
+  --color-accent: var(--color-accent-500);
+  --color-accent-foreground: #ffffff;
+
+  --color-risk-low: var(--color-green-600);
+  --color-risk-medium: var(--color-amber-600);
+  --color-risk-high: var(--color-red-600);
+
+  --color-severity-low: var(--color-neutral-500);
+  --color-severity-medium: var(--color-amber-600);
+  --color-severity-high: #c1540f;
+  --color-severity-critical: var(--color-red-600);
+
+  --color-status-info: #2d58ad;
+  --color-status-positive: var(--color-green-600);
+  --color-status-attention: var(--color-amber-600);
+  --color-status-negative: var(--color-red-600);
+  --color-status-neutral: var(--color-neutral-500);
+  --color-status-pending: var(--color-violet-500);
+}
+
+:root[data-theme='dark'],
+:root:not([data-theme='light']) {
+  @media (prefers-color-scheme: dark) {
+    color-scheme: dark;
+
+    --color-background: var(--color-neutral-950);
+    --color-surface: var(--color-neutral-900);
+    --color-surface-raised: var(--color-neutral-800);
+    --color-border: var(--color-neutral-800);
+    --color-border-strong: #727b8b;
+    --color-foreground: var(--color-neutral-50);
+    --color-foreground-muted: var(--color-neutral-400);
+    --color-foreground-subtle: #9aa0ac;
+
+    --color-accent: #5b7cf0;
+    --color-accent-foreground: #0a0c10;
+
+    --color-risk-low: #4caf7d;
+    --color-risk-medium: #e0a53f;
+    --color-risk-high: #ec5c5c;
+
+    --color-severity-low: var(--color-neutral-400);
+    --color-severity-medium: #e0a53f;
+    --color-severity-high: #e8864a;
+    --color-severity-critical: #ec5c5c;
+
+    --color-status-info: #6d93e8;
+    --color-status-positive: #4caf7d;
+    --color-status-attention: #e0a53f;
+    --color-status-negative: #ec5c5c;
+    --color-status-neutral: var(--color-neutral-400);
+    --color-status-pending: #9683e0;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --color-background: var(--color-neutral-950);
+  --color-surface: var(--color-neutral-900);
+  --color-surface-raised: var(--color-neutral-800);
+  --color-border: var(--color-neutral-800);
+  --color-border-strong: #727b8b;
+  --color-foreground: var(--color-neutral-50);
+  --color-foreground-muted: var(--color-neutral-400);
+  --color-foreground-subtle: #9aa0ac;
+
+  --color-accent: #5b7cf0;
+  --color-accent-foreground: #0a0c10;
+
+  --color-risk-low: #4caf7d;
+  --color-risk-medium: #e0a53f;
+  --color-risk-high: #ec5c5c;
+
+  --color-severity-low: var(--color-neutral-400);
+  --color-severity-medium: #e0a53f;
+  --color-severity-high: #e8864a;
+  --color-severity-critical: #ec5c5c;
+
+  --color-status-info: #6d93e8;
+  --color-status-positive: #4caf7d;
+  --color-status-attention: #e0a53f;
+  --color-status-negative: #ec5c5c;
+  --color-status-neutral: var(--color-neutral-400);
+  --color-status-pending: #9683e0;
+}
+
+@theme inline {
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-surface-raised: var(--color-surface-raised);
+  --color-border: var(--color-border);
+  --color-border-strong: var(--color-border-strong);
+  --color-foreground: var(--color-foreground);
+  --color-foreground-muted: var(--color-foreground-muted);
+  --color-foreground-subtle: var(--color-foreground-subtle);
+  --color-accent: var(--color-accent);
+  --color-accent-foreground: var(--color-accent-foreground);
+  --color-risk-low: var(--color-risk-low);
+  --color-risk-medium: var(--color-risk-medium);
+  --color-risk-high: var(--color-risk-high);
+  --color-severity-low: var(--color-severity-low);
+  --color-severity-medium: var(--color-severity-medium);
+  --color-severity-high: var(--color-severity-high);
+  --color-severity-critical: var(--color-severity-critical);
+  --color-status-info: var(--color-status-info);
+  --color-status-positive: var(--color-status-positive);
+  --color-status-attention: var(--color-status-attention);
+  --color-status-negative: var(--color-status-negative);
+  --color-status-neutral: var(--color-status-neutral);
+  --color-status-pending: var(--color-status-pending);
+}
+
+* {
+  border-color: var(--color-border);
+}
+
+html {
+  font-family: var(--font-sans);
+}
+
+body {
+  margin: 0;
+  background-color: var(--color-background);
+  color: var(--color-foreground);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+[role='alert'] {
+  color: var(--color-status-negative);
+}
+
+body {
+  line-height: 1.5;
+}
+button,
+a,
+input,
+select,
+textarea {
+  touch-action: manipulation;
+}
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

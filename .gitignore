@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+.coverage
+htmlcov/
+
+# Node / frontend
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+/frontend/vite.config.js
+/frontend/vite.config.d.ts
+
+# Env files (never commit real secrets)
+.env
+infra/.env
+
+# OS / editor
+.DS_Store
+*.swp
+
+# Claude Code local settings (never shared)
+.claude/
+
+# ML artifacts and the (large, non-public) PaySim dataset — never committed
+ml/artifacts/
+ml/data/raw/
+ml/data/paysim.csv
+ml/data/*.csv
+ml/archive/
+ml/archive.zip

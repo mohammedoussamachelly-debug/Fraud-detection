@@ -1,0 +1,25 @@
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.isort]
+# "app" lives in ../backend, not under this project root, so ruff's
+# auto-detection (which only looks under the pyproject.toml it found)
+# doesn't recognize it as first-party on its own.
+known-first-party = ["ml", "app"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# ".." puts the repo root (this file's parent) on sys.path so `import ml...`
+# resolves; "../backend" puts the backend package on sys.path so
+# `import app...` resolves — ml/ and backend/ share one virtualenv
+# (backend/.venv) in this project, see docs/ml-pipeline.md.
+pythonpath = ["..", "../backend"]
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true
+mypy_path = ["..", "../backend"]

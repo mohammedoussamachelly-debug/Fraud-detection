@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: sentinelai
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d sentinelai"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: backend
+    env:
+      ALEMBIC_DATABASE_URL: postgresql+psycopg2://postgres:postgres@localhost:5432/sentinelai
+      DATABASE_URL: postgresql+psycopg2://api_service:ci_api_service_password@localhost:5432/sentinelai
+      API_SERVICE_DB_PASSWORD: ci_api_service_password
+      ML_TRAINER_DB_PASSWORD: ci_ml_trainer_password
+      APP_ENV: test
+      API_V1_PREFIX: /api/v1
+      CORS_ORIGINS: http://localhost:5173
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements-dev.txt
+      - run: ruff check .
+      - run: mypy app
+      - run: alembic upgrade head
+      - run: pytest -v
+
+  ml:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ml
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      # ml/ and backend/ share one virtualenv in this project (see
+      # docs/ml-pipeline.md) — backend/requirements-dev.txt already pulls
+      # in pandas/xgboost/shap/etc., and ml/tests needs `app.ml.features`
+      # importable, so install from there rather than ml/requirements.txt.
+      - run: pip install -r ../backend/requirements-dev.txt
+      - run: ruff check .
+      - run: mypy data training explain
+      - run: pytest -v
+
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - run: npm install
+      - run: npm run lint
+      - run: npm run test
+      - run: npm run build

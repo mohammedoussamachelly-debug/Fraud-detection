@@ -1,0 +1,15 @@
+# Mirrors the ML-relevant subset of backend/requirements.txt exactly (same
+# versions) so a dedicated `ml/.venv` can be created identically to the
+# shared backend/.venv this project actually uses in development (see
+# docs/ml-pipeline.md for why they're shared here). Also needs
+# backend/requirements.txt's SQLAlchemy + psycopg2-binary for DB access
+# (ground-truth loader, replay script) — install both files into the same
+# venv if you do set up a separate one.
+pandas>=2.2,<2.3
+numpy>=1.26,<2.1
+scikit-learn>=1.5,<1.6
+xgboost>=2.1,<2.2
+shap>=0.46,<0.47
+joblib>=1.4,<1.5
+matplotlib>=3.9,<3.10
+-r ../backend/requirements.txt

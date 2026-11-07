@@ -1,0 +1,89 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-sentinelai}
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      - sentinelai_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      # -h 127.0.0.1 forces a TCP check. Without it, pg_isready hits the Unix
+      # socket, which the official image's init-phase temp server also answers
+      # on before it restarts into its final listening state — a healthcheck
+      # without -h can report "healthy" against that transient server, racing
+      # the real startup and failing the migrate job's first connection.
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-sentinelai}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  migrate:
+    build:
+      context: ../backend
+      dockerfile: ../infra/backend.Dockerfile
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ALEMBIC_DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-sentinelai}
+      API_SERVICE_DB_PASSWORD: ${API_SERVICE_DB_PASSWORD:-api_service_dev_password}
+      ML_TRAINER_DB_PASSWORD: ${ML_TRAINER_DB_PASSWORD:-ml_trainer_dev_password}
+    command: ["alembic", "upgrade", "head"]
+
+  backend:
+    build:
+      context: ../backend
+      dockerfile: ../infra/backend.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      APP_ENV: development
+      API_V1_PREFIX: /api/v1
+      DATABASE_URL: postgresql+psycopg2://api_service:${API_SERVICE_DB_PASSWORD:-api_service_dev_password}@db:5432/${POSTGRES_DB:-sentinelai}
+      CORS_ORIGINS: http://localhost:${FRONTEND_HOST_PORT:-5173}
+      ML_ARTIFACTS_DIR: /ml_artifacts
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev_jwt_secret_change_me}
+      SERVICE_API_KEY: ${SERVICE_API_KEY:-dev_service_api_key_change_me}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
+      LLM_PROVIDER: ${LLM_PROVIDER:-mock}
+      LLM_MODEL_NAME: ${LLM_MODEL_NAME:-mock-deterministic-v1}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      AGENT_NODE_TIMEOUT_SECONDS: ${AGENT_NODE_TIMEOUT_SECONDS:-30}
+    volumes:
+      # Read-only: training (run locally, not in Compose yet — see
+      # docs/ml-pipeline.md) writes here; the API only ever reads the
+      # frozen artifact it points at. No image rebuild needed for this —
+      # it's a bind mount, not something baked into the image.
+      - ../ml/artifacts:/ml_artifacts:ro
+    ports:
+      - "${BACKEND_HOST_PORT:-8001}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/v1/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: ../infra/frontend.Dockerfile
+    restart: unless-stopped
+    depends_on:
+      - backend
+    environment:
+      VITE_API_BASE_URL: http://localhost:${BACKEND_HOST_PORT:-8001}/api/v1
+    ports:
+      - "${FRONTEND_HOST_PORT:-5173}:5173"
+
+volumes:
+  sentinelai_postgres_data:
