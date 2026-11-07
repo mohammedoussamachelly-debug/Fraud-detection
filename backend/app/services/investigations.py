@@ -276,17 +276,17 @@ def _build_graph(db: Session, run_id: uuid.UUID, provider: LLMProvider, settings
     # LangGraph's native per-node `timeout=` is async-only in the
     # installed version (1.2.20) — raises `ValueError` at `.compile()`
     # time for the sync nodes this graph uses throughout, discovered
-    # while smoke-testing this exact pipeline. `retry_policy` has no such
+    # while smoke-testing this exact pipeline. `retry` has no such
     # restriction, so it's still the official interface for bounded
     # retries; the wall-clock bound above is our own
     # `ThreadPoolExecutor.submit().result(timeout=...)`, applied inside
     # every node regardless of LangGraph version.
     retry = RetryPolicy(max_attempts=_MAX_NODE_ATTEMPTS, retry_on=Exception)
 
-    builder.add_node("intake", _wrap("intake"), retry_policy=retry)
-    builder.add_node("evidence_collector", _wrap("evidence_collector"), retry_policy=retry)
-    builder.add_node("network_investigator", _wrap("network_investigator"), retry_policy=retry)
-    builder.add_node("report_writer", _wrap("report_writer"), retry_policy=retry)
+    builder.add_node("intake", _wrap("intake"), retry=retry)
+    builder.add_node("evidence_collector", _wrap("evidence_collector"), retry=retry)
+    builder.add_node("network_investigator", _wrap("network_investigator"), retry=retry)
+    builder.add_node("report_writer", _wrap("report_writer"), retry=retry)
     builder.add_node("human_approval_gate", _wrap("human_approval_gate"))
 
     builder.add_edge(START, "intake")
