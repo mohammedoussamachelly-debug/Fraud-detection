@@ -1,3 +1,17 @@
+# Phase 7.5 verification status — incomplete
+
+Updated 2026-11-07. The real PostgreSQL demo is loaded: 500 owned accounts, 10,000 transactions, 10,000 genuine XGBoost/SHAP assessments, zero model-threshold alerts and eight explicitly labeled demonstration-rule alerts. Existing unrelated operational records were preserved.
+
+- Frontend: 36 tests passed. TypeScript/Vite build passed. ESLint has no errors and four Fast Refresh warnings (two pre-existing, two in the new shared activity component).
+- Backend: the latest full PostgreSQL run reported **180 passed, 1 failed, no skips**. The remaining failure expected HTTP 200 from case-decision creation, whose established response is HTTP 201. The assertion is corrected but has not been rerun. Genuine scoring/SHAP parity, reset ownership checks, case concurrency, report deduplication, and ground-truth role isolation ran in this suite.
+- Real browser: login, database-backed dashboard counts, four primary destinations, and the first two scenario links/model assessments/graphs passed. The incoming-transfer scenario exposed an exclusive graph cutoff. The UI now requests `event_step + 1` to include the inspected hour; production ML history still excludes the event hour. A graph boundary regression test was added.
+- The corrected live-browser run and backend regression rerun were **not executed**: automatic approval review failed because its service usage limit was reached. The review explicitly described this as a review-service failure, not an unsafe-action determination. It must be restored before further elevated live checks.
+- Responsive workspace checks, full real-browser report approval/case resolution, final screenshots, and temporary QA-login/server cleanup remain pending. Do not treat historical Phase 7 fixture screenshots as verification of the new workflow.
+
+Resume with the current `qa/live-demo-check.mjs` against the real API, then run the full backend suite with the existing role credentials available privately. Isolated verification services were started on backend 8002/frontend 5175 and Chromium debugging port 9223; user-owned services on 8001/5174 were left untouched. Temporary QA credentials are outside the repository in a mode-600 file and must be deactivated/removed after verification.
+
+---
+
 # Phase 7 verification record
 
 Verified on 2026-11-07. This record covers the local frontend implementation, not production readiness.

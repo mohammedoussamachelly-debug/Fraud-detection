@@ -23,7 +23,14 @@ export function NetworkCanvas({
     const cy = cytoscape({
       container: container.current,
       elements: [
-        ...graph.nodes.map((node) => ({ data: { id: node.id, label: node.external_ref } })),
+        ...graph.nodes.map((node) => ({
+          data: {
+            id: node.id,
+            label: node.external_ref.includes('DEMO:')
+              ? node.external_ref.split(':').slice(2).join(':')
+              : node.external_ref,
+          },
+        })),
         ...graph.edges.map((edge) => ({
           data: { id: edge.transaction_id, source: edge.source, target: edge.target },
         })),
@@ -38,6 +45,8 @@ export function NetworkCanvas({
             'font-size': 11,
             'text-valign': 'bottom',
             'text-margin-y': 8,
+            'text-wrap': 'wrap',
+            'text-max-width': '70px',
             width: 26,
             height: 26,
           },
@@ -57,7 +66,13 @@ export function NetworkCanvas({
           style: { 'border-width': 3, 'border-color': color('--color-foreground') },
         },
       ],
-      layout: { name: 'breadthfirst', directed: true, padding: 35, spacingFactor: 1.4 },
+      layout: {
+        name: 'breadthfirst',
+        directed: true,
+        padding: 35,
+        spacingFactor: 1.4,
+        nodeDimensionsIncludeLabels: true,
+      },
       minZoom: 0.15,
       maxZoom: 3,
       wheelSensitivity: 0.2,

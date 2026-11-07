@@ -16,12 +16,33 @@ import { PageHeader } from '../../components/layout/PageHeader'
 import { Button } from '../../components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card'
 import { Skeleton } from '../../components/ui/skeleton'
-import { formatDateTime, shortId } from '../../lib/format'
+import { formatDateTime } from '../../lib/format'
 import { InvestigationStepViewer } from './InvestigationStepViewer'
+
+const evidenceLabels: Record<string, string> = {
+  transaction: 'Payment record',
+  risk_score: 'Model assessment',
+  shap_explanation: 'Model risk factors',
+  historical_stats: 'Account history',
+  network_finding: 'Connected account findings',
+  graph_metrics: 'Account connections',
+  graph_neighborhood: 'Connected accounts',
+  fund_flow: 'Recorded transfer paths',
+  similar_cases: 'Related investigations',
+}
 
 type ReviewAction = 'approve' | 'reject' | 'revision'
 export function InvestigationDetailPage() {
   const { runId = '' } = useParams()
+  return <InvestigationReport runId={runId} />
+}
+export function InvestigationReport({
+  runId,
+  embedded = false,
+}: {
+  runId: string
+  embedded?: boolean
+}) {
   const client = useQueryClient()
   const [action, setAction] = useState<ReviewAction | null>(null)
   const [feedback, setFeedback] = useState('')
@@ -42,6 +63,7 @@ export function InvestigationDetailPage() {
       client.setQueryData(['investigation', runId], updated)
       void client.invalidateQueries({ queryKey: ['case-investigations', updated.case_id] })
       void client.invalidateQueries({ queryKey: ['audit-log'] })
+      void client.invalidateQueries({ queryKey: ['workspace-dashboard'] })
       setAction(null)
       setFeedback('')
     },
@@ -58,6 +80,7 @@ export function InvestigationDetailPage() {
         key={reference}
         reference={reference}
         resolved={!!item}
+        label={item ? `Evidence ${run.evidence_refs.indexOf(item) + 1}` : 'Missing evidence'}
         onClick={() => {
           if (item) {
             const element = document.getElementById(`evidence-${item.id}`)
@@ -70,15 +93,18 @@ export function InvestigationDetailPage() {
   }
   return (
     <>
-      <Link
-        to={`/cases/${run.case_id}?tab=investigations`}
-        className="mb-4 inline-block text-xs text-accent"
-      >
-        ← Case {shortId(run.case_id)}
-      </Link>
+      {!embedded && (
+        <Link
+          to={`/cases/${run.case_id}?tab=investigations`}
+          className="mb-4 inline-block text-xs text-accent"
+        >
+          ← Investigation workspace
+        </Link>
+      )}
       <PageHeader
-        title={`Investigation ${shortId(run.run_id)}`}
-        description={`Started ${formatDateTime(run.started_at)} · ${run.model_provider} / ${run.model_name} · prompt ${run.prompt_version}`}
+        headingLevel={embedded ? 2 : 1}
+        title="Review investigation report"
+        description={`Started ${formatDateTime(run.started_at)} · ${run.model_provider === 'mock' ? 'Mock AI demonstration' : run.model_provider}`}
         actions={<InvestigationStatusBadge status={run.status} />}
       />
       <div className="mb-4 rounded-control border border-border bg-surface p-3 text-sm">
@@ -99,14 +125,25 @@ export function InvestigationDetailPage() {
       <div className="grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)]">
         <Card>
           <CardHeader>
-            <CardTitle>Execution timeline</CardTitle>
+            <CardTitle>Investigation progress</CardTitle>
             <p className="text-xs text-foreground-muted">
               {run.steps.length} recorded steps · {run.revision_count} revisions
             </p>
           </CardHeader>
           <CardContent>
             {run.steps.length ? (
-              <InvestigationStepViewer steps={run.steps} />
+              <>
+                <p role="status" className="mb-3 text-sm">
+                  {run.steps.filter((s) => s.status === 'succeeded').length} steps completed ·{' '}
+                  {run.status.replace(/_/g, ' ')}
+                </p>
+                <details>
+                  <summary className="cursor-pointer text-xs">
+                    Technical details · execution steps
+                  </summary>
+                  <InvestigationStepViewer steps={run.steps} />
+                </details>
+              </>
             ) : (
               <EmptyState
                 title={
@@ -244,20 +281,27 @@ export function InvestigationDetailPage() {
       </div>
       <Card className="mt-4">
         <CardHeader>
-          <CardTitle>Collected evidence references</CardTitle>
+          <CardTitle>Supporting evidence</CardTitle>
         </CardHeader>
         <CardContent>
           {run.evidence_refs.length === 0 ? (
             <EmptyState title="No evidence references collected" />
           ) : (
             <ul className="divide-y divide-border">
-              {run.evidence_refs.map((e) => (
+              {run.evidence_refs.map((e, index) => (
                 <li key={e.id} id={`evidence-${e.id}`} tabIndex={-1} className="py-3">
-                  <p className="break-all font-mono text-xs">{e.source_reference}</p>
-                  <p className="mt-1 break-words text-sm">{e.summary}</p>
-                  <p className="mt-1 text-xs text-foreground-muted">
-                    Collected by {e.collected_by_node} · {formatDateTime(e.created_at)}
+                  <p className="text-sm font-medium">
+                    Evidence {index + 1} · {evidenceLabels[e.evidence_type] ?? 'Supporting record'}
                   </p>
+                  <p className="mt-1 text-xs text-foreground-muted">
+                    Collected {formatDateTime(e.created_at)}
+                  </p>
+                  <details className="mt-2 text-xs text-foreground-muted">
+                    <summary>Technical details · source</summary>
+                    <p className="break-all">{e.source_reference}</p>
+                    <p className="mt-1 break-words">{e.summary}</p>
+                    <p className="mt-1">Collected by {e.collected_by_node}</p>
+                  </details>
                 </li>
               ))}
             </ul>
@@ -292,7 +336,7 @@ export function InvestigationDetailPage() {
       >
         {action === 'revision'
           ? feedback
-          : `Investigation ${shortId(runId)} · case ${shortId(run.case_id)}`}
+          : 'Review the findings and uncertainties before confirming.'}
       </ConfirmationDialog>
     </>
   )

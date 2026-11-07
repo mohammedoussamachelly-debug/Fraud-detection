@@ -13,7 +13,7 @@ import { InvestigationDetailPage } from '../features/investigations/Investigatio
 import { AuditPage } from '../features/audit/AuditPage'
 import { RiskScoreIndicator } from '../features/transactions/RiskScoreIndicator'
 import { DataTable, type DataColumn } from '../components/data/DataTable'
-import { alert, caseDetail, json, page, run, user } from './fixtures'
+import { alert, caseDetail, inboxEntry, json, page, run, user } from './fixtures'
 
 function mount(children: ReactNode, path = '/', route = '/') {
   const client = new QueryClient({
@@ -53,40 +53,44 @@ afterEach(() => {
 describe('Alert queue', () => {
   it('shows loading while awaiting the API', () => {
     mockFetch(() => new Promise(() => {}))
-    const { container } = render(
+    render(
       <QueryClientProvider client={new QueryClient()}>
         <MemoryRouter>
           <AlertsListPage />
         </MemoryRouter>
       </QueryClientProvider>,
     )
-    expect(container.querySelectorAll('tbody tr').length).toBe(6)
-    expect(screen.queryByText('No alerts match these filters')).not.toBeInTheDocument()
+    expect(screen.getByRole('status', { name: 'Loading alerts' })).toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    expect(screen.queryByText('No alerts match this view.')).not.toBeInTheDocument()
   })
   it('shows an empty state for a successful empty response', async () => {
     mockFetch(() => json(page([])))
     mount(<AlertsListPage />)
-    expect(await screen.findByText('No alerts match these filters')).toBeInTheDocument()
+    expect(await screen.findByText('No alerts match this view.')).toBeInTheDocument()
   })
   it('shows API failures and retries without inventing records', async () => {
     let fail = true
-    mockFetch(() => (fail ? json({ detail: 'Queue unavailable' }, 503) : json(page([alert]))))
+    mockFetch(() => (fail ? json({ detail: 'Queue unavailable' }, 503) : json(page([inboxEntry]))))
     mount(<AlertsListPage />)
     expect(await screen.findByRole('alert')).toHaveTextContent('Queue unavailable')
     fail = false
     fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
     expect(await screen.findByText('critical')).toBeInTheDocument()
   })
-  it('uses URL filters and server offsets for next page', async () => {
+  it('uses review filters and server offsets for next page', async () => {
     const requests: URL[] = []
     mockFetch((url) => {
       requests.push(url)
-      return json(page([alert], 30))
+      return json(page([inboxEntry], 30))
     })
     mount(<AlertsListPage />, '/alerts?status=open&severity=critical', '/alerts')
     await screen.findByText('1-25 of 30')
-    expect(requests[0].searchParams.get('severity')).toBe('critical')
-    fireEvent.click(screen.getByRole('button', { name: 'Next page' }))
+    fireEvent.change(screen.getByLabelText('Severity'), { target: { value: 'critical' } })
+    await waitFor(() =>
+      expect(requests.some((url) => url.searchParams.get('severity') === 'critical')).toBe(true),
+    )
+    fireEvent.click(await screen.findByRole('button', { name: 'Next page' }))
     await waitFor(() =>
       expect(requests.some((url) => url.searchParams.get('offset') === '25')).toBe(true),
     )
@@ -124,7 +128,16 @@ describe('Risk score failures', () => {
 describe('Case decisions and permissions', () => {
   it('does not offer a decision form to an analyst and does not spin forever', async () => {
     mockFetch((url) =>
-      url.pathname.endsWith('/decision') ? json({ detail: 'No decision' }, 404) : json(caseDetail),
+      url.pathname.endsWith('/decision')
+        ? json({ detail: 'No decision' }, 404)
+        : url.pathname.includes('/workspace/cases/')
+          ? json({
+              case: { ...caseDetail, title: 'Test activity' },
+              activities: [],
+              history: {},
+              run_id: null,
+            })
+          : json(page([])),
     )
     mount(<CaseDetailPage />, `/cases/${caseDetail.id}?tab=decision`, '/cases/:caseId')
     expect(await screen.findByText(/Only a senior analyst or admin/)).toBeInTheDocument()

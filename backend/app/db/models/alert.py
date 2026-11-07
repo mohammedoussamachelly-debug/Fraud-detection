@@ -7,7 +7,15 @@ from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
 
-ALERT_TYPES = ("model_threshold", "graph_structural", "manual")
+ALERT_TYPES = (
+    "model_threshold",
+    "graph_structural",
+    "manual",
+    "demo_rule_unusual",
+    "demo_rule_incoming",
+    "demo_rule_redistribution",
+    "demo_rule_linked",
+)
 ALERT_SEVERITIES = ("low", "medium", "high", "critical")
 ALERT_STATUSES = ("open", "triaged", "escalated", "dismissed")
 

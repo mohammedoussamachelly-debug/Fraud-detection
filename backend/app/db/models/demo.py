@@ -1,4 +1,5 @@
 """Ownership registry for explicitly synthetic, safely resettable demo batches."""
+
 import uuid
 from datetime import datetime
 

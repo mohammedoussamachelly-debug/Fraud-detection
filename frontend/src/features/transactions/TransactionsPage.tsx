@@ -1,176 +1,164 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import { useState, type FormEvent } from 'react'
-import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
-import { listTransactions } from '../../api/transactions'
-import type { Transaction } from '../../api/types'
-import { DataTable, type DataColumn } from '../../components/data/DataTable'
-import { FilterBar } from '../../components/data/FilterBar'
+import { readable } from '../workspace/presentation'
+import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { getActivities, getActivity } from '../../api/workspace'
+import { ErrorState } from '../../components/data/ErrorState'
 import { PageHeader } from '../../components/layout/PageHeader'
-import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
 import { Pagination } from '../../components/ui/pagination'
-import { formatCurrency, formatDateTime, shortId } from '../../lib/format'
-import { TransactionDetailPanel } from './TransactionDetailPanel'
-
-const columns: DataColumn<Transaction>[] = [
-  {
-    header: 'Reference',
-    accessorKey: 'external_ref',
-    cell: ({ getValue }) => <span className="font-mono text-xs">{getValue<string>()}</span>,
-  },
-  { header: 'Type', accessorKey: 'type' },
-  {
-    header: 'Amount · units',
-    accessorKey: 'amount',
-    cell: ({ getValue }) => (
-      <span className="block text-right tabular-nums">{formatCurrency(getValue<string>())}</span>
-    ),
-  },
-  {
-    header: 'Origin',
-    accessorKey: 'origin_account_id',
-    cell: ({ getValue }) => (
-      <span className="font-mono text-xs">{shortId(getValue<string>())}</span>
-    ),
-  },
-  {
-    header: 'Recipient',
-    accessorKey: 'dest_account_id',
-    cell: ({ getValue }) => (
-      <span className="font-mono text-xs">{shortId(getValue<string>())}</span>
-    ),
-  },
-  { header: 'Step ↑', accessorKey: 'step' },
-  {
-    header: 'Occurred',
-    accessorKey: 'occurred_at',
-    cell: ({ getValue }) => formatDateTime(getValue<string>()),
-  },
-]
-import { UUID_PATTERN } from '../../lib/validation'
-
+import { Skeleton } from '../../components/ui/skeleton'
+import { formatCurrency, formatDateTime } from '../../lib/format'
+import { ActivityDetail, Connections, InvestigateButton, RiskLabel } from '../workspace/Activity'
 export function TransactionsPage() {
   const { transactionId } = useParams()
-  const navigate = useNavigate()
-  const [params, setParams] = useSearchParams()
-  const [accountInput, setAccountInput] = useState(params.get('account_id') ?? '')
-  const [lookup, setLookup] = useState('')
-  const account = params.get('account_id') ?? ''
-  const type = params.get('type') ?? ''
-  const offset = Math.max(0, Number(params.get('offset')) || 0)
+  return transactionId ? (
+    <TransactionContext key={transactionId} id={transactionId} />
+  ) : (
+    <TransactionList />
+  )
+}
+function TransactionContext({ id }: { id: string }) {
+  const [params] = useSearchParams()
+  const query = useQuery({ queryKey: ['workspace-activity', id], queryFn: () => getActivity(id) })
+  if (query.error) return <ErrorState error={query.error} onRetry={() => query.refetch()} />
+  if (!query.data) return <Skeleton className="h-64 w-full" />
+  const item = query.data
+  return (
+    <>
+      <Link className="mb-4 inline-block text-xs text-accent" to="/transactions">
+        ← Transactions
+      </Link>
+      <PageHeader
+        title={readable(item.transaction.external_ref)}
+        description="Review the payment, its history, and the accounts involved."
+        actions={<InvestigateButton alertId={item.alert_id} caseId={item.case_id} />}
+      />
+      <div className="grid grid-cols-1 items-start gap-4 xl:grid-cols-2">
+        <ActivityDetail item={item} />
+        <Connections
+          accountId={params.get('connected') || item.transaction.origin_account_id}
+          step={item.transaction.step}
+        />
+      </div>
+    </>
+  )
+}
+function TransactionList() {
+  const [params] = useSearchParams()
+  const [search, setSearch] = useState(''),
+    [type, setType] = useState(''),
+    [offset, setOffset] = useState(0)
+  const account = params.get('account') ?? ''
   const query = useQuery({
-    queryKey: ['transactions', { account, type, offset }],
-    queryFn: () =>
-      listTransactions({
-        account_id: account || undefined,
-        type: type || undefined,
-        offset,
-        limit: 25,
-      }),
-    placeholderData: keepPreviousData,
+    queryKey: ['workspace-transactions', search, type, account, offset],
+    queryFn: () => getActivities({ search, type, account_id: account, offset, limit: 25 }),
   })
-  function filter(event: FormEvent) {
-    event.preventDefault()
-    const next = new URLSearchParams(params)
-    if (accountInput.trim()) next.set('account_id', accountInput.trim())
-    else next.delete('account_id')
-    next.delete('offset')
-    setParams(next)
-  }
-  function openTransaction(id: string) {
-    navigate(`/transactions/${encodeURIComponent(id)}${params.size ? `?${params}` : ''}`)
-  }
   return (
     <>
       <PageHeader
         title="Transactions"
-        description="Inspect ingested activity, persisted model scores, and account relationships."
+        description="Find a payment and understand its context. Amounts are in synthetic units."
       />
-      <FilterBar>
-        <form className="flex flex-wrap items-end gap-2" onSubmit={filter}>
-          <label className="grid gap-1 text-xs text-foreground-muted">
-            Account UUID
-            <Input
-              value={accountInput}
-              onChange={(e) => setAccountInput(e.target.value)}
-              pattern={UUID_PATTERN}
-              placeholder="All accounts"
-              className="w-64 max-w-full"
-            />
-          </label>
-          <Button type="submit">Apply</Button>
-        </form>
-        <label className="grid gap-1 text-xs text-foreground-muted">
-          Transaction type
+      <div className="mb-4 flex flex-wrap items-end gap-3">
+        <label className="grid gap-1 text-xs">
+          Search payments
+          <Input
+            placeholder="Account or payment reference"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setOffset(0)
+            }}
+          />
+        </label>
+        <label className="grid gap-1 text-xs">
+          Payment type
           <select
-            className="h-8 rounded-control border border-border-strong bg-surface px-2 text-sm text-foreground"
+            className="rounded-control border border-border bg-surface px-3 py-2"
             value={type}
             onChange={(e) => {
-              const next = new URLSearchParams(params)
-              if (e.target.value) next.set('type', e.target.value)
-              else next.delete('type')
-              next.delete('offset')
-              setParams(next)
+              setType(e.target.value)
+              setOffset(0)
             }}
           >
-            <option value="">All types</option>
-            {['TRANSFER', 'PAYMENT', 'CASH_IN', 'CASH_OUT', 'DEBIT'].map((t) => (
-              <option key={t}>{t}</option>
+            {['', 'PAYMENT', 'TRANSFER', 'DEBIT', 'CASH_IN', 'CASH_OUT'].map((t) => (
+              <option key={t} value={t}>
+                {readable(t) || 'All types'}
+              </option>
             ))}
           </select>
         </label>
-        <form
-          className="flex flex-wrap items-end gap-2"
-          onSubmit={(e) => {
-            e.preventDefault()
-            openTransaction(lookup.trim())
-          }}
-        >
-          <label className="grid gap-1 text-xs text-foreground-muted">
-            Open transaction UUID
-            <Input
-              required
-              pattern={UUID_PATTERN}
-              value={lookup}
-              onChange={(e) => setLookup(e.target.value)}
-              className="w-64 max-w-full"
-            />
-          </label>
-          <Button type="submit">Open</Button>
-        </form>
-      </FilterBar>
-      <p className="mb-2 text-xs text-foreground-muted">
-        Simulation step ascending · amounts are synthetic units, with no currency assigned
-      </p>
-      <DataTable
-        columns={columns}
-        data={query.data?.items ?? []}
-        isLoading={query.isPending || query.isPlaceholderData}
-        error={query.error}
-        onRetry={() => query.refetch()}
-        emptyTitle="No matching transactions"
-        emptyDescription="Try another account or transaction type."
-        onRowClick={(t) => openTransaction(t.id)}
-      />
-      {query.data && (
-        <Pagination
-          limit={25}
-          offset={offset}
-          total={query.data.total}
-          disabled={query.isFetching}
-          onOffsetChange={(value) => {
-            const next = new URLSearchParams(params)
-            next.set('offset', String(value))
-            setParams(next)
-          }}
-        />
-      )}
-      {transactionId && (
-        <TransactionDetailPanel
-          key={transactionId}
-          transactionId={transactionId}
-          onClose={() => navigate(`/transactions${params.size ? `?${params}` : ''}`)}
-        />
+        {account && (
+          <Link className="text-xs text-accent" to="/transactions">
+            Clear account filter
+          </Link>
+        )}
+      </div>
+      {query.error ? (
+        <ErrorState error={query.error} onRetry={() => query.refetch()} />
+      ) : !query.data ? (
+        <Skeleton className="h-64 w-full" />
+      ) : (
+        <>
+          <div className="overflow-x-auto rounded-control border border-border bg-surface">
+            <table className="w-full text-left text-sm">
+              <caption className="sr-only">Payments and model assessments</caption>
+              <thead className="border-b border-border text-xs text-foreground-muted">
+                <tr>
+                  {['Payment', 'Amount', 'Occurred', 'Model score', 'Investigation'].map((h) => (
+                    <th key={h} className="px-4 py-3 font-medium">
+                      {h}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {query.data.items.map((item) => (
+                  <tr key={item.transaction.id}>
+                    <td className="min-w-64 px-4 py-3">
+                      <Link
+                        className="font-medium text-accent"
+                        to={`/transactions/${item.transaction.id}`}
+                      >
+                        {item.sender} → {item.recipient}
+                      </Link>
+                      <p className="mt-1 text-xs text-foreground-muted">
+                        {readable(item.transaction.external_ref)} ·{' '}
+                        {readable(item.transaction.type)}
+                      </p>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 tabular-nums">
+                      {formatCurrency(item.transaction.amount)}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-xs">
+                      {formatDateTime(item.transaction.occurred_at)}
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-xs">
+                      <RiskLabel activity={item} />
+                    </td>
+                    <td className="min-w-40 px-4 py-3">
+                      <InvestigateButton alertId={item.alert_id} caseId={item.case_id} />
+                      {!item.alert_id && (
+                        <span className="text-xs text-foreground-muted">No alert</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {!query.data.items.length && (
+              <p className="p-6 text-sm">No payments match these filters.</p>
+            )}
+          </div>
+          <Pagination
+            total={query.data.total}
+            limit={25}
+            offset={offset}
+            onOffsetChange={setOffset}
+            disabled={query.isFetching}
+          />
+        </>
       )}
     </>
   )

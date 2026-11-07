@@ -1,0 +1,25 @@
+{
+  "date": "2026-11-07T21:37:18.962438+00:00",
+  "batch": "showcase",
+  "synthetic": true,
+  "accounts": 500,
+  "transactions": 10000,
+  "scores": 10000,
+  "configured_days": 65,
+  "first_occurred_at": "2026-01-01T00:00:00+00:00",
+  "last_occurred_at": "2026-03-06T23:00:00+00:00",
+  "model_version": "xgb-v1-20261106T142923",
+  "threshold": 0.98,
+  "minimum_probability": 2.267431034597145e-11,
+  "maximum_probability": 1.288674070565321e-06,
+  "max_stored_probability_error": 4.99440563021865e-16,
+  "model_threshold_alerts": 0,
+  "demonstration_rule_alerts": 8,
+  "checks": [
+    "All stored accounts and payments exactly match deterministic generation",
+    "All 10000 scores match freshly computed XGBoost predictions",
+    "Five scenario SHAP explanations match production scoring",
+    "Model alerts exactly match threshold crossings",
+    "Repeated default load adds no records"
+  ]
+}

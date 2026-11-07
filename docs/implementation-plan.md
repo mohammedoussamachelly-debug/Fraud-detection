@@ -327,3 +327,12 @@ and 9 depend on everything before them.
 - **Frontend/demo scope creep**: Phase 7 should visualize only what Phases 3–6
   actually produce; it must not invent chart data to fill out the dashboard
   before the backing endpoint exists.
+
+## Phase 7.5 — demo and unified workflow
+
+- Added owned, deterministic, atomic demo batches (migration 0006), explicit demonstration alert types (0007), and probability precision (0008).
+- Reused production feature/history definitions, actual frozen XGBoost inference and probability-space SHAP. No training or ground-truth imports.
+- Added enriched JWT-protected workspace read models, serialized case/report entry points, and database-backed scenario cards.
+- Reduced primary navigation to Dashboard, Alerts, Investigations and Transactions. Contextual history, graph, evidence, report progress/review and human case decisions share one workspace.
+- Added PostgreSQL generator/ML/reset/concurrency/RBAC regression tests and a browser check against the real API. See frontend-qa.md for final measured results and known limitations.
+- Existing case/report APIs remain available; automatic entry points reuse existing work. Reset refuses external references and active reports, and retains audit history.

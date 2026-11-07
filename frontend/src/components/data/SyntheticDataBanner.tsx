@@ -11,7 +11,7 @@ export function SyntheticDataBanner({ className }: { className?: string }) {
       )}
     >
       <FlaskConical className="h-3.5 w-3.5 text-foreground-subtle" aria-hidden="true" />
-      Synthetic data (PaySim) — no real accounts or transactions.
+      Synthetic demonstration data — no real customers or transactions.
     </div>
   )
 }

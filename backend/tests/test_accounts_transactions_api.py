@@ -1,7 +1,7 @@
 import uuid
 
 from fastapi.testclient import TestClient
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 
 from app.db.models import Account, Transaction
 from tests.conftest import auth_header
@@ -74,7 +74,15 @@ def test_list_and_get_transaction(
 
         listed = client.get(
             "/api/v1/transactions",
-            params={"type": "TRANSFER", "limit": 5},
+            params={
+                "type": "TRANSFER",
+                "limit": 5,
+                "account_id": str(
+                    db_session.scalar(
+                        select(Account.id).where(Account.external_ref == f"{prefix}-orig")
+                    )
+                ),
+            },
             headers=auth_header(user),
         )
         assert listed.status_code == 200

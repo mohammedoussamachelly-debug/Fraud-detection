@@ -1,4 +1,5 @@
 """Isolated synthetic demo batch ownership; no changes to operational records."""
+
 from collections.abc import Sequence
 
 import sqlalchemy as sa
@@ -19,7 +20,12 @@ def upgrade() -> None:
         sa.Column("seed", sa.Integer(), nullable=False),
         sa.Column("config", postgresql.JSONB(), nullable=False),
         sa.Column("scenarios", postgresql.JSONB(), nullable=False),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False, server_default=sa.text("now()")),
+        sa.Column(
+            "created_at",
+            sa.DateTime(timezone=True),
+            nullable=False,
+            server_default=sa.text("now()"),
+        ),
         schema="app",
     )
     op.create_table(
@@ -29,7 +35,9 @@ def upgrade() -> None:
         sa.Column("entity_id", postgresql.UUID(as_uuid=True), primary_key=True),
         schema="app",
     )
-    op.create_index("ix_demo_records_entity", "demo_records", ["entity_type", "entity_id"], schema="app")
+    op.create_index(
+        "ix_demo_records_entity", "demo_records", ["entity_type", "entity_id"], schema="app"
+    )
 
 
 def downgrade() -> None:

@@ -63,3 +63,31 @@ export function json(data: unknown, status = 200) {
     headers: { 'Content-Type': 'application/json' },
   })
 }
+
+export const inboxEntry = {
+  ...alert,
+  description: 'Model score crossed the review threshold',
+  source: 'Model threshold',
+  activity: {
+    transaction: {
+      id: alert.transaction_id,
+      external_ref: 'TEST payment',
+      amount: '100',
+      occurred_at: stamp,
+      type: 'TRANSFER',
+      step: 5,
+      origin_account_id: user.id,
+      dest_account_id: caseDetail.id,
+      origin_balance_before: '200',
+      origin_balance_after: '100',
+      dest_balance_before: '0',
+      dest_balance_after: '100',
+    },
+    sender: 'Test sender',
+    recipient: 'Test recipient',
+    risk: null,
+    alert_id: alert.id,
+    case_id: null,
+    synthetic: true,
+  },
+}

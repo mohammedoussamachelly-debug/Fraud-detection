@@ -120,3 +120,43 @@ def test_get_llm_provider_raises_for_unknown_provider() -> None:
     settings = Settings(llm_provider="not_a_real_provider")
     with pytest.raises(LLMProviderUnavailable):
         get_llm_provider(settings)
+
+
+def test_anthropic_structured_report_ignores_preamble_and_keeps_real_provenance(monkeypatch):
+    import io
+    import json
+
+    from app.agents.llm import AnthropicLLMProvider
+
+    payload = {
+        "summary": "Review the actual evidence.",
+        "hypotheses": [],
+        "uncertainties": ["Insufficient evidence"],
+        "recommended_next_step": "Human review",
+    }
+    captured = []
+
+    def respond(request, timeout):
+        captured.append(json.loads(request.data))
+        return io.BytesIO(
+            json.dumps(
+                {
+                    "stop_reason": "tool_use",
+                    "content": [
+                        {"type": "text", "text": "Here is the report:"},
+                        {"type": "tool_use", "name": "submit_report", "input": payload},
+                    ],
+                }
+            ).encode()
+        )
+
+    monkeypatch.setattr("urllib.request.urlopen", respond)
+    provider = AnthropicLLMProvider("test-only-key", "test-model")
+    result = provider.generate_report(_inputs())
+    assert result.summary == payload["summary"]
+    assert result.model_provider == "anthropic" and result.is_mock is False
+    assert captured[0]["tool_choice"] == {"type": "tool", "name": "submit_report"}
+    with pytest.raises(ValueError, match="output limit"):
+        provider._extract_text({"stop_reason": "max_tokens", "content": []})
+    with pytest.raises(ValueError, match="no structured"):
+        provider._extract_text({"content": [{"type": "text", "text": "Not a report"}]})

@@ -1,0 +1,10 @@
+{
+  "provider": "anthropic",
+  "model": "claude-sonnet-4-6",
+  "status": "failed",
+  "case_id": "d7270992-6d12-5748-ab56-931948e2349f",
+  "run_id": "36da4aff-49a6-447e-be92-63cd22209eef",
+  "is_mock": null,
+  "hypotheses": 0,
+  "error": "report_writer exceeded its node timeout"
+}

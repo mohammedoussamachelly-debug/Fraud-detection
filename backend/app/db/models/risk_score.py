@@ -39,10 +39,10 @@ class RiskScore(Base):
     transaction_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True), ForeignKey("app.transactions.id"), nullable=False, index=True
     )
-    risk_score: Mapped[Decimal] = mapped_column(Numeric(6, 5), nullable=False)
+    risk_score: Mapped[Decimal] = mapped_column(Numeric(16, 15), nullable=False)
     risk_level: Mapped[str] = mapped_column(Text, nullable=False)
     model_version: Mapped[str] = mapped_column(Text, nullable=False)
-    threshold_used: Mapped[Decimal] = mapped_column(Numeric(6, 5), nullable=False)
+    threshold_used: Mapped[Decimal] = mapped_column(Numeric(16, 15), nullable=False)
     # Explanation contributions from app/ml/inference.explain, captured at
     # scoring time so later evidence attachment never has to reload a
     # possibly-rotated model artifact to reproduce it. Null if the scoring

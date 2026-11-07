@@ -5,7 +5,7 @@ platform built on synthetic data (PaySim) only — no real banking integration.
 See `CLAUDE.md` for the project vision and rules, and `docs/` for the full
 architecture, database design, API contracts, and phased implementation plan.
 
-**Current status**: Phases 1–6 complete; Phase 7 frontend implemented, with live-backend end-to-end verification pending. Phase 2's data model (`accounts`,
+**Current status**: Phase 7.5 implements the reproducible PostgreSQL demo and unified analyst workspace. See [verification results](docs/frontend-qa.md) for measured checks and limitations. Phase 2's data model (`accounts`,
 `transactions`, isolated `ground_truth.transaction_labels`); Phase 3 (ML
 training + inference), **trained and evaluated on the real PaySim
 dataset** (see `docs/model-evaluation.md` for real measured metrics);
@@ -37,6 +37,12 @@ exploration, AI report review, and an administrator audit log. See
 [frontend architecture](docs/frontend-architecture.md), [UX flows](docs/ux-flows.md),
 and [verification record](docs/frontend-qa.md). Browser fixtures are isolated from
 the application; the UI always requests the real API and never substitutes fixtures.
+
+## Guided demonstration
+
+Start with [the five-minute walkthrough](docs/demo-walkthrough.md): create your own SentinelAI login, load 500 synthetic accounts and 10,000 transactions, then open Dashboard → Explore demo. Reuse the existing PostgreSQL container, backend virtual environment and frontend Node installation; no image rebuild is required.
+
+See [demo load/reset commands](docs/demo-data.md), [five scenarios](docs/demo-scenarios.md), [workspace design](docs/ux-redesign.md), and [verification evidence](docs/frontend-qa.md). Scores and SHAP explanations come from the existing frozen XGBoost model. Scenario-rule alerts and mock AI reports are explicitly labeled.
 
 ## Repository layout
 
@@ -463,11 +469,7 @@ some other way) is the fix, not anything in the application code.
   Phase 6 Part A**; see `docs/authentication.md`'s "Known limitations"
   for exactly what changed.
 - **No refresh tokens or logout** — see `docs/authentication.md`.
-- **The investigation LLM is a deterministic mock** in this
-  environment — no API key is configured. The real-provider code path
-  (`AnthropicLLMProvider`/`OpenAILLMProvider`, `app/agents/llm.py`) is
-  implemented but unverified against a real endpoint. See
-  `docs/agent-security.md` §1 and §9.
+- **Investigation providers:** explicit `mock` mode remains available for reproducible tests. Local Anthropic credentials are configured separately; see the setup below and the current [verification record](docs/frontend-qa.md). OpenAI provider integration remains unverified.
 - **No automatic resume of an in-flight investigation after a backend
   restart** — a run's history up to the restart is never lost, but
   nothing re-schedules it; see `docs/multi-agent-architecture.md` §2.5
@@ -493,9 +495,69 @@ some other way) is the fix, not anything in the application code.
 - Fan-in/fan-out thresholds (graph analytics) are a fixed heuristic
   rather than tuned, and cycle detection is bounded to 6-node cycles by
   default.
-- The Phase 7 UI is implemented. Its automated and browser fixture checks are
-  documented in `docs/frontend-qa.md`; live authenticated backend workflows
-  still need verification. Some requested analytics/search/history require
-  API endpoints that do not currently exist.
+- Phase 7.5 adds database-backed search, account history, guided scenarios and a unified investigation workspace. Automated and live PostgreSQL/browser results are documented in [frontend-qa.md](docs/frontend-qa.md).
 - The frontend Docker image runs the Vite **dev** server, not a production
   static build behind nginx — deferred to the deployment-polish phase.
+
+
+## Phase 7.5 — start the demonstration
+
+The primary journey is **Dashboard → Explore demo → Investigate → review evidence/report → record a human decision**. The four main destinations are Dashboard, Alerts, Investigations and Transactions. Accounts, Network Explorer and the audit log remain under Advanced / Admin.
+
+Reuse the installed virtual environment, Node dependencies and running PostgreSQL container:
+
+```sh
+cd backend
+# Apply migrations with your existing ALEMBIC_DATABASE_URL administrator connection.
+.venv/bin/alembic upgrade head
+.venv/bin/python -m scripts.demo_data load
+CORS_ORIGINS=http://localhost:5174 .venv/bin/uvicorn app.main:app --reload --port 8001
+```
+
+In another terminal:
+
+```sh
+cd frontend
+VITE_API_BASE_URL=http://localhost:8001/api/v1 npm run dev -- --port 5174 --strictPort
+```
+
+Open **http://localhost:5174**, sign in with your SentinelAI application account, and expand **Explore demo**. No shared default login is created. See [the five-minute walkthrough](docs/demo-walkthrough.md) for creating an analyst account and exploring all five scenarios.
+
+The default `showcase` batch contains **500 synthetic accounts and 10,000 payments across 65 simulated days**. Every payment has a persisted genuine XGBoost/SHAP assessment. The current model produces **zero threshold alerts** on this batch; eight separately labeled demonstration-rule alerts illustrate investigation patterns. The PaySim model is not calibrated to this synthetic distribution. No prediction is forced and no model is retrained for the demo.
+
+Repeated loads reuse the existing batch. Reset requires an exact confirmation and refuses external dependencies:
+
+```sh
+cd backend
+.venv/bin/python -m scripts.demo_data reset --batch showcase --confirm 'DELETE DEMO showcase'
+```
+
+Reset deletes only that owned batch and its investigation work, retaining audit history. See [demo-data.md](docs/demo-data.md), [demo-scenarios.md](docs/demo-scenarios.md) and [ux-redesign.md](docs/ux-redesign.md).
+
+### Anthropic or explicit mock mode
+
+For local uvicorn, configure these values in **`backend/.env`**. Docker Compose reads **`infra/.env`** instead. A key in `infra/.env` alone does not configure a locally launched backend.
+
+```dotenv
+LLM_PROVIDER=anthropic
+LLM_MODEL_NAME=claude-sonnet-4-6
+ANTHROPIC_API_KEY=<your private Anthropic key>
+```
+
+The model must be available to your Anthropic account; `mock-deterministic-v1` is only valid with `LLM_PROVIDER=mock`. Keep keys in ignored environment files, never frontend variables. Restart the backend after changing these settings. Existing stored reports retain their original provider/model labels; opening a case reuses its current report. The advanced investigation API permits an explicitly requested new run.
+
+For reproducible tests or an offline demo, set `LLM_PROVIDER=mock` and `LLM_MODEL_NAME=mock-deterministic-v1`. The UI clearly labels mock reports. XGBoost predictions remain genuine with either report provider. Report approval never resolves a case; the separate senior-analyst/admin decision does.
+
+### Repeat live browser verification
+
+With the local API/frontend and an installed Chromium CDP endpoint already running:
+
+```sh
+cd backend
+QA_BASE_URL=http://127.0.0.1:5175 \
+QA_API_URL=http://127.0.0.1:8002/api/v1 \
+QA_CDP_URL=http://127.0.0.1:9223 \
+.venv/bin/python -m scripts.verify_demo
+```
+
+Run the QA API with explicit mock provider settings. This verifier creates a temporary synthetic batch and random login, exercises real browser controls against PostgreSQL, then removes its owned batch and deactivates the login. It preserves the showcase and audit history. Screenshots and measured results are in [the verification record](docs/frontend-qa.md).

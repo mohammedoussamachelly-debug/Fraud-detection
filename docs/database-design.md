@@ -246,3 +246,13 @@ See the "Unresolved decisions" section of the final architecture summary for:
 partitioning `transactions` by `step` range if the demo dataset is large enough
 to warrant it, and whether `agent_steps.tool_calls`/`output` payload size needs a
 separate blob-style store instead of `jsonb`.
+
+## Phase 7.5 additions
+
+Migration `0006` adds `app.demo_batches` (text batch primary key, seed, JSONB configuration/scenario manifest, creation time) and `app.demo_records` (composite batch/type/UUID key plus entity lookup index). The batch foreign key and explicit ownership ledger support deterministic load and scoped reset without claiming unrelated rows. Entity IDs are polymorphic ownership records; normal operational foreign keys continue enforcing domain integrity.
+
+Migration `0007` extends the alert-type constraint with `demo_rule_unusual`, `demo_rule_incoming`, `demo_rule_redistribution`, and `demo_rule_linked`. These are explicitly demonstration rules, separate from `model_threshold`; existing transaction/type uniqueness prevents duplicate alerts. Downgrade refuses while unsupported demo alert rows remain.
+
+Migration `0008` widens persisted probability and threshold columns from `NUMERIC(6,5)` to `NUMERIC(16,15)` so genuine small probabilities survive storage. Existing rounded values are not reconstructed. No model, feature or threshold is changed.
+
+Loading uses a batch advisory transaction lock, deterministic entity IDs and atomic inserts. Reset requires `DELETE DEMO <batch>`, blocks concurrent writes during reference checks, refuses mixed ownership/external evidence or active reports, and deletes only ledger-owned records plus their dependent case/report rows in foreign-key order. Audit records and users remain. Operational and training schema grants are unchanged.

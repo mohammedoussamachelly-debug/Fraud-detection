@@ -1,0 +1,596 @@
+{
+  "date": "2026-11-07T21:24:43.242Z",
+  "source": "Real PostgreSQL backend; no API fixtures",
+  "batch": "browser-qa-bd75e7c14f75",
+  "dashboard": {
+    "transactions": 10301,
+    "attention": 17,
+    "investigations": 3,
+    "review": 1,
+    "queue": [
+      {
+        "id": "0745da44-bc8d-5293-80c4-4d7348b25288",
+        "description": "Connected transfers need a closer look",
+        "severity": "high",
+        "status": "open",
+        "created_at": "2026-11-07T21:24:25.803297Z",
+        "source": "Demonstration rule",
+        "activity": {
+          "transaction": {
+            "id": "17e772a0-34f9-5f70-a126-2827cba27724",
+            "external_ref": "DEMO:browser-qa-bd75e7c14f75:Transfer 00290",
+            "step": 1395,
+            "occurred_at": "2026-02-28T03:00:00Z",
+            "type": "TRANSFER",
+            "amount": "44000.00",
+            "origin_account_id": "60e84f26-496f-5a1f-851f-347aafa21e28",
+            "dest_account_id": "a1b7e255-3d82-58f8-b00b-f4a70e8a06d6",
+            "origin_balance_before": "2045000.00",
+            "origin_balance_after": "2001000.00",
+            "dest_balance_before": "2000000.00",
+            "dest_balance_after": "2044000.00"
+          },
+          "sender": "Connected business B",
+          "recipient": "Connected business C",
+          "risk": {
+            "id": "d5295015-a882-57e6-a04c-28049fe77c88",
+            "transaction_id": "17e772a0-34f9-5f70-a126-2827cba27724",
+            "risk_score": 1.36291234e-7,
+            "risk_level": "low",
+            "model_version": "xgb-v1-20261106T142923",
+            "threshold_used": 0.98,
+            "explanation": {
+              "base_value": 0.019822357629617975,
+              "contributions": [
+                {
+                  "feature": "sender_prev_balance",
+                  "value": 2045000,
+                  "shap_contribution": -0.013183898401077471,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "amount",
+                  "value": 44000,
+                  "shap_contribution": -0.005526637620450545,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "hour_of_day",
+                  "value": 3,
+                  "shap_contribution": 0.0034131356773390276,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "transaction_type",
+                  "value": "TRANSFER",
+                  "shap_contribution": -0.003034711281071424,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "recipient_prev_balance",
+                  "value": 2000000,
+                  "shap_contribution": -0.001494590656489768,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "log_amount",
+                  "value": 10.691967639914864,
+                  "shap_contribution": 0.000004480853808930913,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "num_prev_txns_by_sender",
+                  "value": 0,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "historical_avg_amount",
+                  "value": 0,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "num_unique_prev_recipients",
+                  "value": 0,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "recent_txn_frequency",
+                  "value": 0,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "sender_is_new",
+                  "value": 1,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                }
+              ]
+            },
+            "scored_at": "2026-11-07T21:24:25.803297Z"
+          },
+          "alert_id": "0745da44-bc8d-5293-80c4-4d7348b25288",
+          "case_id": "3002994c-92c5-5d9f-a38f-1e52eda4f995",
+          "synthetic": true
+        }
+      },
+      {
+        "id": "21dba525-3cfd-527e-81e8-e25f929db627",
+        "description": "Connected transfers need a closer look",
+        "severity": "high",
+        "status": "open",
+        "created_at": "2026-11-07T21:24:25.803297Z",
+        "source": "Demonstration rule",
+        "activity": {
+          "transaction": {
+            "id": "6d8740d4-a61a-5f3f-bc73-089087004af6",
+            "external_ref": "DEMO:browser-qa-bd75e7c14f75:Transfer 00292",
+            "step": 1397,
+            "occurred_at": "2026-02-28T05:00:00Z",
+            "type": "TRANSFER",
+            "amount": "42000.00",
+            "origin_account_id": "f7b2d20c-4e95-5642-829a-ffa1dd68dd5e",
+            "dest_account_id": "4d033ce9-0583-5220-924f-bc4f122477e1",
+            "origin_balance_before": "2043000.00",
+            "origin_balance_after": "2001000.00",
+            "dest_balance_before": "1955000.00",
+            "dest_balance_after": "1997000.00"
+          },
+          "sender": "Connected business D",
+          "recipient": "Connected business A",
+          "risk": {
+            "id": "c55cfbfe-74d8-50cb-8445-97c6efbb2739",
+            "transaction_id": "6d8740d4-a61a-5f3f-bc73-089087004af6",
+            "risk_score": 0.000001288674071,
+            "risk_level": "low",
+            "model_version": "xgb-v1-20261106T142923",
+            "threshold_used": 0.98,
+            "explanation": {
+              "base_value": 0.019822357629617975,
+              "contributions": [
+                {
+                  "feature": "sender_prev_balance",
+                  "value": 2043000,
+                  "shap_contribution": -0.014309739556521482,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "amount",
+                  "value": 42000,
+                  "shap_contribution": -0.004024422849663883,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "hour_of_day",
+                  "value": 5,
+                  "shap_contribution": 0.003882493762260676,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "transaction_type",
+                  "value": "TRANSFER",
+                  "shap_contribution": -0.0035451327420795683,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "recipient_prev_balance",
+                  "value": 1955000,
+                  "shap_contribution": -0.0018300563795640512,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "log_amount",
+                  "value": 10.645448706505872,
+                  "shap_contribution": 0.000005788731979194134,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "num_prev_txns_by_sender",
+                  "value": 0,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "historical_avg_amount",
+                  "value": 0,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "num_unique_prev_recipients",
+                  "value": 0,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "recent_txn_frequency",
+                  "value": 0,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "sender_is_new",
+                  "value": 1,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                }
+              ]
+            },
+            "scored_at": "2026-11-07T21:24:25.803297Z"
+          },
+          "alert_id": "21dba525-3cfd-527e-81e8-e25f929db627",
+          "case_id": "3002994c-92c5-5d9f-a38f-1e52eda4f995",
+          "synthetic": true
+        }
+      },
+      {
+        "id": "4b505931-d84d-5278-8a59-d1c0b94b119d",
+        "description": "Larger-than-usual business transfer",
+        "severity": "high",
+        "status": "open",
+        "created_at": "2026-11-07T21:24:25.803297Z",
+        "source": "Demonstration rule",
+        "activity": {
+          "transaction": {
+            "id": "64d7959f-24ea-53c5-9ed8-d19556227563",
+            "external_ref": "DEMO:browser-qa-bd75e7c14f75:Transfer 00295",
+            "step": 1404,
+            "occurred_at": "2026-02-28T12:00:00Z",
+            "type": "TRANSFER",
+            "amount": "90000.00",
+            "origin_account_id": "34cfeb7b-a591-59e8-8dfc-c0c34a684435",
+            "dest_account_id": "487857d0-c38e-597c-ad71-3f6d963709c7",
+            "origin_balance_before": "1982553.73",
+            "origin_balance_after": "1892553.73",
+            "dest_balance_before": "2017446.27",
+            "dest_balance_after": "2107446.27"
+          },
+          "sender": "Growing business",
+          "recipient": "Equipment supplier",
+          "risk": {
+            "id": "a93e1392-f8be-5fa9-8dfa-f34c0e20d2c8",
+            "transaction_id": "64d7959f-24ea-53c5-9ed8-d19556227563",
+            "risk_score": 4.0390177e-8,
+            "risk_level": "low",
+            "model_version": "xgb-v1-20261106T142923",
+            "threshold_used": 0.98,
+            "explanation": {
+              "base_value": 0.019822357629617975,
+              "contributions": [
+                {
+                  "feature": "sender_prev_balance",
+                  "value": 1982553.73,
+                  "shap_contribution": -0.013084469448382088,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "transaction_type",
+                  "value": "TRANSFER",
+                  "shap_contribution": -0.002745257264043052,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "amount",
+                  "value": 90000,
+                  "shap_contribution": -0.002456092817544658,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "recipient_prev_balance",
+                  "value": 2017446.27,
+                  "shap_contribution": -0.0012993114167178638,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "num_prev_txns_by_sender",
+                  "value": 58,
+                  "shap_contribution": -0.0003224865887095645,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "hour_of_day",
+                  "value": 12,
+                  "shap_contribution": 0.00009982047167982275,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "log_amount",
+                  "value": 11.407576060361786,
+                  "shap_contribution": -0.00001452028044336882,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "historical_avg_amount",
+                  "value": 300.79775862068965,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "num_unique_prev_recipients",
+                  "value": 1,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "recent_txn_frequency",
+                  "value": 1,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "sender_is_new",
+                  "value": 0,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                }
+              ]
+            },
+            "scored_at": "2026-11-07T21:24:25.803297Z"
+          },
+          "alert_id": "4b505931-d84d-5278-8a59-d1c0b94b119d",
+          "case_id": null,
+          "synthetic": true
+        }
+      },
+      {
+        "id": "66847a2d-f544-5d9b-b888-e5296b0839f8",
+        "description": "Multiple senders paid one collection account",
+        "severity": "high",
+        "status": "open",
+        "created_at": "2026-11-07T21:24:25.803297Z",
+        "source": "Demonstration rule",
+        "activity": {
+          "transaction": {
+            "id": "87af940e-230e-5dfc-b3a8-299a3398cfb1",
+            "external_ref": "DEMO:browser-qa-bd75e7c14f75:Transfer 00282",
+            "step": 1392,
+            "occurred_at": "2026-02-28T00:00:00Z",
+            "type": "TRANSFER",
+            "amount": "12000.00",
+            "origin_account_id": "8ea9cb6b-1a61-5e10-afcb-ebca92f12cd3",
+            "dest_account_id": "71a8bf3d-f968-573e-ad57-00943690f278",
+            "origin_balance_before": "2000000.00",
+            "origin_balance_after": "1988000.00",
+            "dest_balance_before": "2063000.00",
+            "dest_balance_after": "2075000.00"
+          },
+          "sender": "Customer 012",
+          "recipient": "Collection account",
+          "risk": {
+            "id": "195d88e0-d14f-5ff9-ad32-ea52e820faa1",
+            "transaction_id": "87af940e-230e-5dfc-b3a8-299a3398cfb1",
+            "risk_score": 3.6143e-10,
+            "risk_level": "low",
+            "model_version": "xgb-v1-20261106T142923",
+            "threshold_used": 0.98,
+            "explanation": {
+              "base_value": 0.019822357629617975,
+              "contributions": [
+                {
+                  "feature": "sender_prev_balance",
+                  "value": 2000000,
+                  "shap_contribution": -0.009011023427436746,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "amount",
+                  "value": 12000,
+                  "shap_contribution": -0.0063014252244041405,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "transaction_type",
+                  "value": "TRANSFER",
+                  "shap_contribution": -0.0027526160100319838,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "recipient_prev_balance",
+                  "value": 2063000,
+                  "shap_contribution": -0.0013979548774521462,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "log_amount",
+                  "value": 9.392745258631441,
+                  "shap_contribution": -0.0002329298543669421,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "hour_of_day",
+                  "value": 0,
+                  "shap_contribution": -0.00012640798530260747,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "num_prev_txns_by_sender",
+                  "value": 0,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "historical_avg_amount",
+                  "value": 0,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "num_unique_prev_recipients",
+                  "value": 0,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "recent_txn_frequency",
+                  "value": 0,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "sender_is_new",
+                  "value": 1,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                }
+              ]
+            },
+            "scored_at": "2026-11-07T21:24:25.803297Z"
+          },
+          "alert_id": "66847a2d-f544-5d9b-b888-e5296b0839f8",
+          "case_id": null,
+          "synthetic": true
+        }
+      },
+      {
+        "id": "7ad248e9-546d-5ac1-9527-8e032d8acd04",
+        "description": "Connected transfers need a closer look",
+        "severity": "high",
+        "status": "open",
+        "created_at": "2026-11-07T21:24:25.803297Z",
+        "source": "Demonstration rule",
+        "activity": {
+          "transaction": {
+            "id": "1ea9e4b1-38af-5e9e-94bc-59507cff84c2",
+            "external_ref": "DEMO:browser-qa-bd75e7c14f75:Transfer 00291",
+            "step": 1396,
+            "occurred_at": "2026-02-28T04:00:00Z",
+            "type": "TRANSFER",
+            "amount": "43000.00",
+            "origin_account_id": "a1b7e255-3d82-58f8-b00b-f4a70e8a06d6",
+            "dest_account_id": "f7b2d20c-4e95-5642-829a-ffa1dd68dd5e",
+            "origin_balance_before": "2044000.00",
+            "origin_balance_after": "2001000.00",
+            "dest_balance_before": "2000000.00",
+            "dest_balance_after": "2043000.00"
+          },
+          "sender": "Connected business C",
+          "recipient": "Connected business D",
+          "risk": {
+            "id": "6b017d1b-031c-5940-b191-e28c8d7ca304",
+            "transaction_id": "1ea9e4b1-38af-5e9e-94bc-59507cff84c2",
+            "risk_score": 1.36291234e-7,
+            "risk_level": "low",
+            "model_version": "xgb-v1-20261106T142923",
+            "threshold_used": 0.98,
+            "explanation": {
+              "base_value": 0.019822357629617975,
+              "contributions": [
+                {
+                  "feature": "sender_prev_balance",
+                  "value": 2044000,
+                  "shap_contribution": -0.013183899575518217,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "amount",
+                  "value": 43000,
+                  "shap_contribution": -0.005526639710994033,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "hour_of_day",
+                  "value": 4,
+                  "shap_contribution": 0.0034131334030749207,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "transaction_type",
+                  "value": "TRANSFER",
+                  "shap_contribution": -0.003034711281071424,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "recipient_prev_balance",
+                  "value": 2000000,
+                  "shap_contribution": -0.0014945851172406537,
+                  "direction": "decreases_risk"
+                },
+                {
+                  "feature": "log_amount",
+                  "value": 10.668978650219241,
+                  "shap_contribution": 0.000004480853808930913,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "num_prev_txns_by_sender",
+                  "value": 0,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "historical_avg_amount",
+                  "value": 0,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "num_unique_prev_recipients",
+                  "value": 0,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "recent_txn_frequency",
+                  "value": 0,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                },
+                {
+                  "feature": "sender_is_new",
+                  "value": 1,
+                  "shap_contribution": 0,
+                  "direction": "increases_risk"
+                }
+              ]
+            },
+            "scored_at": "2026-11-07T21:24:25.803297Z"
+          },
+          "alert_id": "7ad248e9-546d-5ac1-9527-8e032d8acd04",
+          "case_id": "3002994c-92c5-5d9f-a38f-1e52eda4f995",
+          "synthetic": true
+        }
+      }
+    ]
+  },
+  "checks": [
+    "Dashboard count matches real API",
+    "Only four primary destinations",
+    "Five stored isolated QA scenarios",
+    "normal: scenario opens the stored transaction",
+    "normal: persisted model and SHAP assessment",
+    "normal: actual connected accounts and transfers",
+    "unusual: scenario opens the stored transaction",
+    "unusual: persisted model and SHAP assessment",
+    "unusual: actual connected accounts and transfers",
+    "incoming: scenario opens the stored transaction",
+    "incoming: persisted model and SHAP assessment",
+    "incoming: actual connected accounts and transfers",
+    "redistribution: scenario opens the stored transaction",
+    "redistribution: persisted model and SHAP assessment",
+    "redistribution: actual connected accounts and transfers",
+    "linked: scenario opens the stored transaction",
+    "linked: persisted model and SHAP assessment",
+    "linked: actual connected accounts and transfers",
+    "Inbox labels scenario rules separately",
+    "Repeated Investigate reuses the case",
+    "workspace-desktop: no page-level horizontal overflow",
+    "workspace-desktop: headings and named form controls",
+    "workspace-tablet: no page-level horizontal overflow",
+    "workspace-tablet: headings and named form controls",
+    "workspace-mobile: no page-level horizontal overflow",
+    "workspace-mobile: headings and named form controls",
+    "Mobile navigation traps keyboard focus",
+    "Fresh QA case is awaiting investigation",
+    "Repeated report start reuses the run",
+    "Mock AI provider is explicit in the real response",
+    "Report approval does not resolve the case",
+    "Separate authorized human decision resolves the case",
+    "No browser runtime exceptions"
+  ],
+  "browserErrors": [],
+  "caseId": "d5625e12-ae3a-4f3a-bef4-b80b212b5d13",
+  "runId": "a8330f2a-78c2-4c1b-ae67-6dcd3e0375c0"
+}

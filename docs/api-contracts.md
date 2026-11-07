@@ -401,3 +401,24 @@ and `docs/authentication.md` for the auth events.
 The `/api/v1` prefix is the only versioning mechanism for now; a breaking change
 ships as `/api/v2` rather than mutating `v1` behavior, so the frontend and any
 documented contract never silently drift.
+
+## Phase 7.5 — analyst workspace
+
+All paths below use `/api/v1` and require an active analyst, senior analyst, or admin JWT. Machine credentials cannot access them. Existing domain routes and decision/audit role restrictions remain unchanged.
+
+| Route | Response / behavior |
+|---|---|
+| `GET /workspace/dashboard` | Stored counts: `transactions`, `attention` (open/triaged/escalated alerts), `investigations` (open/investigating cases), `review` (pending-review cases or unresolved cases with awaiting-approval reports), and five severity-prioritized enriched alerts in `queue`. |
+| `GET /workspace/alerts` | `{items,total,limit,offset}`; filters `status` (including `attention`), `severity`, `search`. Severity first, then creation descending and stable ID tie-break. Items contain `description`, `source`, severity/status/date and `activity`. |
+| `GET /workspace/transactions` | Same pagination; filters `search` (escaped case-insensitive account/reference substring), `type`, `account_id`. Newest simulation step first with ID tie-break. |
+| `GET /workspace/transactions/{id}` | Enriched activity: transaction, readable sender/recipient labels, latest persisted risk assessment or null, alert/case links or null, synthetic marker. |
+| `GET /workspace/transactions/{id}/history` | Production sender-history aggregates strictly before the transaction step. No current-hour or future data. |
+| `GET /workspace/cases` | Paginated readable summaries: ID, title derived from linked activity, status, priority, creation date. Optional `status` filter. |
+| `GET /workspace/cases/{id}` | `{case,activities,history,run_id}`. Activities come from linked alerts; history describes the first linked payment; latest report ID may be null. |
+| `POST /workspace/alerts/{id}/investigate` | HTTP 200 `{case_id,created}`. Locks the alert, reuses its oldest linked case or creates an investigating case, and attaches missing transaction/score/SHAP snapshots with audit entries. Demo case ownership follows a ledger-owned alert. No AI execution or decision is triggered. |
+| `POST /workspace/cases/{id}/report` | HTTP 200 `{run_id,status}`. Serializes on the case, reuses its latest report in any state, or starts its first report through the existing investigation service. Approval remains a distinct existing endpoint; case resolution still requires a senior/admin human decision. |
+| `GET /demo/scenarios` | `{items,notice}` from stored demo batches. Each item identifies the batch/scenario, explanatory text, associated account/transactions, actual model result, and available alert/prepared-case links. No client fixtures. |
+
+Pagination defaults to 25, maximum 100; negative offsets and invalid UUIDs return 422. Unknown domain IDs return 404. Authentication errors remain 401/403. Response types are defined in `app/schemas/workspace.py`; the frontend mirrors them in `src/api/workspace.ts`.
+
+Graph endpoints retain their **exclusive** `as_of_step` contract (`step < cutoff`). To inspect connections through the selected event hour, the workspace sends `event.step + 1`. This display cutoff does not change the strict pre-event ML history boundary.

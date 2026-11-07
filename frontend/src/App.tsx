@@ -33,7 +33,7 @@ const NetworkPage = lazy(() =>
   import('./features/network/NetworkPage').then((m) => ({ default: m.NetworkPage })),
 )
 const InvestigationsPage = lazy(() =>
-  import('./features/investigations/InvestigationsPage').then((m) => ({
+  import('./features/workspace/InvestigationsPage').then((m) => ({
     default: m.InvestigationsPage,
   })),
 )

@@ -5,12 +5,8 @@ and decides which implementation to return. Every provider implements
 the same `generate_report` method, so `app/agents/graph.py`'s
 ReportWriter node never knows (or cares) which one it's talking to.
 
-**This environment has no `ANTHROPIC_API_KEY`/`OPENAI_API_KEY`
-configured anywhere** (checked at the start of this phase's work — see
-the final report). `settings.llm_provider` therefore defaults to
-`"mock"`, and every report this codebase can actually produce *in this
-environment* comes from `MockLLMProvider` — deterministic, rule-based,
-and labeled `model_provider="mock"` on every `AgentRun` row it produces.
+`settings.llm_provider` defaults to `"mock"` for reproducible local tests.
+Real providers require explicit configuration and their own API keys.
 Nothing in this file calls out to a real model unless a real key is
 configured, and nothing silently pretends mock output is real: see
 `AgentRun.model_provider`/`model_name`, always recorded, always checked
@@ -175,9 +171,7 @@ class _HTTPJSONLLMProvider:
     """Shared HTTP-call plumbing for the real providers below. Builds the
     same delimited, labeled prompt (`app/agents/prompts.py`) regardless of
     provider, so prompt-injection hygiene doesn't depend on which model is
-    configured. **Implemented but unverified in this environment** — see
-    the module docstring; there is no API key available here to exercise
-    this path for real.
+    configured. Provider/model provenance is persisted with every report.
     """
 
     endpoint: str
@@ -233,14 +227,58 @@ class AnthropicLLMProvider(_HTTPJSONLLMProvider):
         }
 
     def _body(self, prompt: str) -> dict:
+        # Request a structured report rather than parsing Markdown-wrapped text.
+        # This tool is only a response schema; it executes no application action.
+        strings = {"type": "array", "items": {"type": "string"}}
         return {
             "model": self.model_name,
-            "max_tokens": 1024,
+            "max_tokens": 4096,
             "messages": [{"role": "user", "content": prompt}],
+            "tool_choice": {"type": "tool", "name": "submit_report"},
+            "tools": [
+                {
+                    "name": "submit_report",
+                    "description": "Return the investigation report for human review.",
+                    "input_schema": {
+                        "type": "object",
+                        "properties": {
+                            "summary": {"type": "string"},
+                            "hypotheses": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "text": {"type": "string"},
+                                        "confidence": {
+                                            "type": "string",
+                                            "enum": ["low", "medium", "high"],
+                                        },
+                                        "evidence_refs": strings,
+                                    },
+                                    "required": ["text", "confidence", "evidence_refs"],
+                                },
+                            },
+                            "uncertainties": strings,
+                            "recommended_next_step": {"type": "string"},
+                        },
+                        "required": [
+                            "summary",
+                            "hypotheses",
+                            "uncertainties",
+                            "recommended_next_step",
+                        ],
+                    },
+                }
+            ],
         }
 
     def _extract_text(self, response_json: dict) -> str:
-        return response_json["content"][0]["text"]
+        if response_json.get("stop_reason") == "max_tokens":
+            raise ValueError("Anthropic report exceeded its output limit; no partial report saved")
+        for block in response_json.get("content", []):
+            if block.get("type") == "tool_use" and block.get("name") == "submit_report":
+                return json.dumps(block["input"])
+        raise ValueError("Anthropic returned no structured investigation report")
 
 
 class OpenAILLMProvider(_HTTPJSONLLMProvider):

@@ -12,6 +12,7 @@ from app.api.routes import (
     risk,
     risk_scores,
     transactions,
+    workspace,
 )
 
 api_router = APIRouter()
@@ -26,3 +27,5 @@ api_router.include_router(alerts.router)
 api_router.include_router(cases.router)
 api_router.include_router(audit.router)
 api_router.include_router(investigations.router)
+
+api_router.include_router(workspace.router)
